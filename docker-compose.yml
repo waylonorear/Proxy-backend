@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  proxy:
+    build: .
+    container_name: proxy-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TARGET_URL=${TARGET_URL:-https://api.example.com}
+      - TARGET_V1=${TARGET_V1:-https://api.example.com/v1}
+      - TARGET_V2=${TARGET_V2:-https://api.example.com/v2}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    driver: bridge
